@@ -28,7 +28,7 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { login, register, loginWithGoogle, switchDemoRole } = useAuth();
+  const { login, register, switchDemoRole } = useAuth();
   
   // Tab Mode: 'login' | 'register' | 'forgot'
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
@@ -55,58 +55,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
   // UI state
   const [loading, setLoading] = useState(false);
-  const [ssoLoading, setSsoLoading] = useState<'google' | 'microsoft' | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedSSOProvider, setSelectedSSOProvider] = useState<'google' | 'microsoft' | null>(null);
-  const [showSSOAccountPicker, setShowSSOAccountPicker] = useState(false);
-  const [showCustomGoogleEmail, setShowCustomGoogleEmail] = useState(false);
-  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
-
-  // Google Accounts matching prompt
-  const googleAccounts = [
-    {
-      name: 'Sai Vardhan Malla',
-      email: 'mallasaiwardhan@gmail.com',
-      avatarBg: 'bg-slate-700',
-      initial: 'S',
-      role: 'agency_admin' as const,
-    },
-    {
-      name: 'Malla Sai Vardan',
-      email: '24hu1a05d2@gmail.com',
-      avatarBg: 'bg-sky-500',
-      initial: 'M',
-      role: 'agency_admin' as const,
-    },
-    {
-      name: 'Sai Vardan Malla',
-      email: 'saivardanmalla@gmail.com',
-      avatarBg: 'bg-teal-700',
-      initial: 'S',
-      role: 'agent' as const,
-    },
-    {
-      name: 'sai',
-      email: 'saivardhanmalla8@gmail.com',
-      avatarBg: 'bg-green-700',
-      initial: 's',
-      role: 'agent' as const,
-    },
-    {
-      name: 'Malla Sai Vardhan',
-      email: 'saivardhanmalla@gmail.com',
-      avatarBg: 'bg-sky-500',
-      initial: 'M',
-      role: 'agency_admin' as const,
-    },
-    {
-      name: 'Malla Sai Vardhan',
-      email: 'saivardhanmalla5@gmail.com',
-      avatarBg: 'bg-emerald-800',
-      initial: 'M',
-      role: 'agent' as const,
-    },
-  ];
 
   // Password strength calculation
   const getPasswordStrength = (pwd: string) => {
@@ -187,30 +136,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       setError(err.message || 'Failed to dispatch password reset request.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Google SSO trigger
-  const handleGoogleClick = () => {
-    setSelectedSSOProvider('google');
-    setShowCustomGoogleEmail(false);
-    setCustomGoogleEmail('');
-    setShowSSOAccountPicker(true);
-  };
-
-  // Account selected from Google Account Picker
-  const handleSelectAccount = async (accountEmail: string, role: 'agency_admin' | 'agent') => {
-    setSsoLoading('google');
-    setError(null);
-    try {
-      await loginWithGoogle(accountEmail);
-      setShowSSOAccountPicker(false);
-      if (onSuccess) onSuccess();
-      onClose();
-    } catch (err: any) {
-      setError(err.message || 'Google authentication encountered an issue.');
-    } finally {
-      setSsoLoading(null);
     }
   };
 
@@ -310,34 +235,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                   <p className="text-xs text-[#718096] mt-1">
                     Sign in to your AQARFLOW workspace.
                   </p>
-                </div>
-
-                {/* Google Sign In Button with Official Branding */}
-                <button
-                  type="button"
-                  disabled={ssoLoading !== null}
-                  onClick={handleGoogleClick}
-                  className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 shadow-2xs flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-60"
-                >
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <span>{ssoLoading === 'google' ? 'Connecting to Google...' : 'Continue with Google'}</span>
-                </button>
-
-                {/* Divider: OR CONTINUE WITH EMAIL */}
-                <div className="relative my-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-200" />
-                  </div>
-                  <div className="relative flex justify-center text-[10px] uppercase">
-                    <span className="bg-white px-3 text-[#718096] font-bold tracking-wider">
-                      OR CONTINUE WITH EMAIL
-                    </span>
-                  </div>
                 </div>
 
                 {/* Credentials Form */}
@@ -595,21 +492,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                   </button>
                 </form>
 
-                {/* Continue with Google */}
-                <button
-                  type="button"
-                  onClick={handleGoogleClick}
-                  className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 shadow-2xs flex items-center justify-center gap-2.5 transition-all cursor-pointer"
-                >
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <span>Continue with Google</span>
-                </button>
-
                 {/* Back to Login link */}
                 <div className="text-center text-xs text-slate-500 pt-1">
                   Already have an account?{' '}
@@ -696,132 +578,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
           </div>
         </div>
-
-        {/* Authentic Google Account Selection Dialog */}
-        {showSSOAccountPicker && (
-          <div className="absolute inset-0 z-40 bg-white sm:rounded-3xl flex flex-col justify-between overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
-            <div className="w-full max-w-md mx-auto px-6 pt-6 pb-2">
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => setShowSSOAccountPicker(false)}
-                  className="p-1 -ml-1 text-slate-500 hover:text-slate-800 rounded-full hover:bg-slate-100 cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-                <div className="flex-1 text-center">
-                  <div className="text-xs font-semibold text-slate-800">
-                    Sign in - Google Accounts
-                  </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
-                    accounts.google.com
-                  </div>
-                </div>
-                <div className="w-5" />
-              </div>
-
-              <div className="mt-6 flex items-center gap-2 text-xs font-medium text-slate-700">
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                <span>Sign in with Google</span>
-              </div>
-
-              <div className="mt-5">
-                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
-                  Choose an account
-                </h2>
-                <p className="text-xs text-slate-600 mt-1">
-                  to continue to <strong className="text-blue-600">AQARFLOW VIRELEO</strong>
-                </p>
-              </div>
-
-              <div className="mt-6 divide-y divide-slate-100">
-                {googleAccounts.map((acc, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleSelectAccount(acc.email, acc.role)}
-                    className="w-full py-3.5 flex items-center gap-3.5 text-left hover:bg-slate-50/80 transition-colors cursor-pointer group"
-                  >
-                    <div className={`w-9 h-9 rounded-full ${acc.avatarBg} text-white font-semibold text-sm flex items-center justify-center shrink-0`}>
-                      {acc.initial}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
-                        {acc.name}
-                      </div>
-                      <div className="text-[11px] text-slate-500 font-normal truncate">
-                        {acc.email}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-
-                {/* "Use another account" button & inline input form */}
-                {!showCustomGoogleEmail ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomGoogleEmail(true)}
-                    className="w-full py-3.5 flex items-center gap-3.5 text-left hover:bg-slate-50/80 transition-colors cursor-pointer group"
-                  >
-                    <div className="w-9 h-9 rounded-full border border-slate-300 text-slate-600 flex items-center justify-center shrink-0 group-hover:border-blue-500 group-hover:text-blue-600 transition-colors">
-                      <User className="w-4 h-4" />
-                    </div>
-                    <div className="text-xs font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">
-                      Use another account
-                    </div>
-                  </button>
-                ) : (
-                  <div className="py-4 space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 animate-in fade-in duration-150">
-                    <div className="text-xs font-bold text-slate-900">
-                      Sign in with another Google Email
-                    </div>
-                    <input
-                      type="email"
-                      placeholder="Enter your email or phone"
-                      value={customGoogleEmail}
-                      onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-hidden focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-                      autoFocus
-                    />
-                    <div className="flex items-center justify-between pt-1">
-                      <button
-                        type="button"
-                        onClick={() => setShowCustomGoogleEmail(false)}
-                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!customGoogleEmail.trim()}
-                        onClick={() => handleSelectAccount(customGoogleEmail, 'agency_admin')}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
-                      >
-                        Next →
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-8 pt-4 border-t border-slate-100 text-[11px] text-slate-500 leading-relaxed">
-                Before using this app, you can review AQARFLOW's{' '}
-                <a href="#privacy" onClick={(e) => e.preventDefault()} className="text-blue-600 font-medium hover:underline">
-                  Privacy Policy
-                </a>{' '}
-                and{' '}
-                <a href="#terms" onClick={(e) => e.preventDefault()} className="text-blue-600 font-medium hover:underline">
-                  Terms of Service
-                </a>.
-              </div>
-            </div>
-          </div>
-        )}
 
       </div>
     </div>
