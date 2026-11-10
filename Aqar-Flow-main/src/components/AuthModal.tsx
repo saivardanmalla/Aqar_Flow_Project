@@ -227,7 +227,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 <span>{error}</span>
               </div>
             )}
-
             {/* MODE 1: LOGIN PAGE */}
             {mode === 'login' && (
               <div className="space-y-6">
