@@ -59,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           ))}
         </nav>
 
-        {/* Right Actions: Search Icon, Favorites with red badge (2), Login, Get Started */}
+        {/* Right Actions: Search Icon, Favorites with red badge (2), Login / Workspace */}
         <div className="hidden sm:flex items-center gap-3">
           {/* Circular Search Button */}
           <button
@@ -84,42 +84,35 @@ export const Navbar: React.FC<NavbarProps> = ({
             </span>
           </div>
 
-          {/* Login Button */}
+          {/* Login / Workspace Button */}
           {isAuthenticated ? (
             <button
               onClick={onOpenWorkspace}
-              className="px-4 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors cursor-pointer whitespace-nowrap border border-emerald-200 flex items-center gap-1.5"
+              className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors cursor-pointer whitespace-nowrap shadow-xs flex items-center gap-1.5"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               <span>Workspace</span>
             </button>
           ) : (
             <button
               onClick={onOpenLogin}
-              className="px-4 py-2 text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer whitespace-nowrap border border-slate-200/80"
+              className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl transition-all shadow-xs cursor-pointer whitespace-nowrap"
             >
               Login
             </button>
           )}
-
-          {/* Get Started Button */}
-          <button
-            onClick={onOpenLogin}
-            className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl transition-all shadow-sm cursor-pointer whitespace-nowrap flex items-center gap-1.5"
-          >
-            <span>Get Started</span>
-            <span>→</span>
-          </button>
         </div>
 
         {/* Mobile menu hamburger */}
         <div className="md:hidden flex items-center gap-2">
-          <button
-            onClick={onOpenLogin}
-            className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg"
-          >
-            Get Started
-          </button>
+          {!isAuthenticated && (
+            <button
+              onClick={onOpenLogin}
+              className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg"
+            >
+              Login
+            </button>
+          )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 text-slate-700 hover:text-slate-900 cursor-pointer"
