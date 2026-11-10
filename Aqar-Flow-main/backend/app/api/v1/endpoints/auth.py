@@ -78,6 +78,52 @@ def login(creds: UserLogin):
         "user": safe_user
     }
 
+@router.post("/admin/login", response_model=TokenResponse)
+def admin_login(creds: UserLogin):
+    """
+    Dedicated Admin-Only Login Server Endpoint.
+    Strictly forbids non-admin users (agents, public accounts) from logging in.
+    Only users with role 'agency_admin' or 'super_admin' can authenticate here.
+    """
+    email = creds.email.lower()
+    user = DEMO_USERS.get(email)
+    
+    if not user or (creds.password != user.get("raw_pwd") and not verify_password(creds.password, user["password_hash"])):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid administrator credentials."
+        )
+    
+    # Strict role verification: only admins allowed
+    if user.get("role") not in ["agency_admin", "super_admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access Denied: This server endpoint is exclusively restricted to Administrators. Agents and regular users must use the User Login server."
+        )
+    
+    if not user["is_active"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin account has been deactivated."
+        )
+    
+    access_token = create_access_token(
+        subject=user["id"], 
+        role=user["role"], 
+        agency_id=user["agency_id"]
+    )
+    refresh_token = create_refresh_token(subject=user["id"])
+    ACTIVE_REFRESH_TOKENS.add(refresh_token)
+
+    safe_user = {k: v for k, v in user.items() if k not in ["password_hash", "raw_pwd"]}
+    
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "user": safe_user
+    }
+
 @router.post("/register", response_model=TokenResponse)
 def register(req: UserCreate):
     email = req.email.lower()

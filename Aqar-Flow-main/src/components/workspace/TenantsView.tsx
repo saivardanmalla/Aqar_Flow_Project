@@ -412,3 +412,4 @@ export const TenantsView: React.FC = () => {
     </div>
   );
 };
+

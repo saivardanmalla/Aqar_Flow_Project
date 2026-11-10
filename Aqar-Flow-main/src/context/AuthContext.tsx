@@ -5,7 +5,7 @@ import { api, setAuthToken, getAuthToken } from '../lib/api';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, serverType?: 'user' | 'admin') => Promise<void>;
   register: (data: { full_name: string; agency_name: string; email: string; phone: string; password: string }) => Promise<void>;
   loginWithGoogle: (email?: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -43,10 +43,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, serverType: 'user' | 'admin' = 'user') => {
     setLoading(true);
     try {
-      const res = await api.login(email, password);
+      const res = await api.login(email, password, serverType);
       setUser(res.user);
     } finally {
       setLoading(false);

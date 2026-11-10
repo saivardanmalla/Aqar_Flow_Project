@@ -54,8 +54,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
 export const api = {
   // Auth
-  async login(email: string, password: string): Promise<{ token: string; user: User; message: string }> {
-    const res = await request<{ token?: string; access_token?: string; user: User; message: string }>('/api/v1/auth/login', {
+  async login(email: string, password: string, serverType: 'user' | 'admin' = 'user'): Promise<{ token: string; user: User; message: string }> {
+    const endpoint = serverType === 'admin' ? '/api/v1/auth/admin/login' : '/api/v1/auth/login';
+    const res = await request<{ token?: string; access_token?: string; user: User; message: string }>(endpoint, {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
