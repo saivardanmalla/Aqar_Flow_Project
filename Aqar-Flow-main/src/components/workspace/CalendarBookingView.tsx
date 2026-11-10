@@ -211,3 +211,4 @@ export const CalendarBookingView: React.FC = () => {
     </div>
   );
 };
+

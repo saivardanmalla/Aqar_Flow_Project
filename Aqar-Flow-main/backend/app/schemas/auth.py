@@ -9,8 +9,16 @@ class UserBase(BaseModel):
     role: str = "agent"
     agency_id: str
 
-class UserCreate(UserBase):
+class UserCreate(BaseModel):
+    full_name: str
+    agency_name: str
+    email: str
+    phone: str
     password: str = Field(..., min_length=6)
+
+class GoogleAuthRequest(BaseModel):
+    credential: Optional[str] = None
+    email: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: str

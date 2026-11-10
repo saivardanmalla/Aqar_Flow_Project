@@ -55,12 +55,40 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const api = {
   // Auth
   async login(email: string, password: string): Promise<{ token: string; user: User; message: string }> {
-    const res = await request<{ token: string; user: User; message: string }>('/api/v1/auth/login', {
+    const res = await request<{ token?: string; access_token?: string; user: User; message: string }>('/api/v1/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    setAuthToken(res.token);
-    return res;
+    const token = res.token || res.access_token || '';
+    setAuthToken(token);
+    return { token, user: res.user, message: res.message || 'Login successful' };
+  },
+
+  async register(data: { full_name: string; agency_name: string; email: string; phone: string; password: string }): Promise<{ token: string; user: User }> {
+    const res = await request<{ token?: string; access_token?: string; user: User }>('/api/v1/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    const token = res.token || res.access_token || '';
+    setAuthToken(token);
+    return { token, user: res.user };
+  },
+
+  async googleAuth(email?: string): Promise<{ token: string; user: User }> {
+    const res = await request<{ token?: string; access_token?: string; user: User }>('/api/v1/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+    const token = res.token || res.access_token || '';
+    setAuthToken(token);
+    return { token, user: res.user };
+  },
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    return request<{ message: string }>('/api/v1/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
   },
 
   async logout(): Promise<void> {

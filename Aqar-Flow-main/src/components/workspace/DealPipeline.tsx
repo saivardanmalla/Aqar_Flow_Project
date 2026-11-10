@@ -202,3 +202,4 @@ export const DealPipeline: React.FC<DealPipelineProps> = ({ onAddDeal }) => {
     </div>
   );
 };
+

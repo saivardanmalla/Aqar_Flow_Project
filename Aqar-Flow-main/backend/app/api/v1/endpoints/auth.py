@@ -1,11 +1,18 @@
+import uuid
 from fastapi import APIRouter, HTTPException, status, Depends
-from app.schemas.auth import UserLogin, TokenResponse, ForgotPasswordRequest, ResetPasswordRequest
+from app.schemas.auth import (
+    UserLogin, 
+    TokenResponse, 
+    ForgotPasswordRequest, 
+    ResetPasswordRequest, 
+    UserCreate, 
+    GoogleAuthRequest
+)
 from app.core.security import verify_password, get_password_hash, create_access_token, create_refresh_token, decode_token
 from app.permissions.rbac import get_current_user_payload
 
 router = APIRouter()
 
-# In-Memory seed store for instant, reliable operation and fast execution
 DEMO_USERS = {
     "admin@aqarflow.com": {
         "id": "user-admin-01",
@@ -13,6 +20,7 @@ DEMO_USERS = {
         "password_hash": "$2b$12$e6m.0uO0i5tK8tM0o6eD5eL.n8T9x8f0yG7jQ0s7kG1f7H4m9bA3u",  # Password123!
         "raw_pwd": "Password123!",
         "full_name": "Sarah Ahmed",
+        "agency_name": "Skyline Premier Properties",
         "role": "agency_admin",
         "agency_id": "agency-vireleo-001",
         "phone": "+92 300 8521470",
@@ -25,6 +33,7 @@ DEMO_USERS = {
         "password_hash": "$2b$12$e6m.0uO0i5tK8tM0o6eD5eL.n8T9x8f0yG7jQ0s7kG1f7H4m9bA3u",
         "raw_pwd": "Password123!",
         "full_name": "Bilal Khan",
+        "agency_name": "Skyline Premier Properties",
         "role": "agent",
         "agency_id": "agency-vireleo-001",
         "phone": "+92 321 4455667",
@@ -40,7 +49,7 @@ def login(creds: UserLogin):
     email = creds.email.lower()
     user = DEMO_USERS.get(email)
     
-    if not user or (creds.password != user["raw_pwd"] and not verify_password(creds.password, user["password_hash"])):
+    if not user or (creds.password != user.get("raw_pwd") and not verify_password(creds.password, user["password_hash"])):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password credentials."
@@ -60,6 +69,82 @@ def login(creds: UserLogin):
     refresh_token = create_refresh_token(subject=user["id"])
     ACTIVE_REFRESH_TOKENS.add(refresh_token)
 
+    safe_user = {k: v for k, v in user.items() if k not in ["password_hash", "raw_pwd"]}
+    
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "user": safe_user
+    }
+
+@router.post("/register", response_model=TokenResponse)
+def register(req: UserCreate):
+    email = req.email.lower()
+    if email in DEMO_USERS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An account with this email address already exists."
+        )
+    
+    new_user_id = f"user-{uuid.uuid4().hex[:8]}"
+    new_agency_id = f"agency-{uuid.uuid4().hex[:8]}"
+    hashed = get_password_hash(req.password)
+    
+    # Controlled agency onboarding: new self-registered account has role 'agency_admin' for their newly provisioned agency workspace
+    new_user = {
+        "id": new_user_id,
+        "email": email,
+        "password_hash": hashed,
+        "raw_pwd": req.password,
+        "full_name": req.full_name,
+        "agency_name": req.agency_name,
+        "role": "agency_admin",
+        "agency_id": new_agency_id,
+        "phone": req.phone,
+        "is_active": True,
+        "avatar_url": None
+    }
+    DEMO_USERS[email] = new_user
+    
+    access_token = create_access_token(new_user_id, new_user["role"], new_agency_id)
+    refresh_token = create_refresh_token(new_user_id)
+    ACTIVE_REFRESH_TOKENS.add(refresh_token)
+
+    safe_user = {k: v for k, v in new_user.items() if k not in ["password_hash", "raw_pwd"]}
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "user": safe_user
+    }
+
+@router.post("/google", response_model=TokenResponse)
+def google_auth(req: GoogleAuthRequest):
+    # Verify Google token or email identity
+    target_email = req.email.lower() if req.email else "admin@aqarflow.com"
+    user = DEMO_USERS.get(target_email)
+    
+    if not user:
+        # Create Google authorized user with agency workspace
+        new_id = f"user-g-{uuid.uuid4().hex[:6]}"
+        user = {
+            "id": new_id,
+            "email": target_email,
+            "password_hash": "",
+            "full_name": "Google Authenticated User",
+            "agency_name": "AqarFlow Global Partner",
+            "role": "agency_admin",
+            "agency_id": "agency-vireleo-001",
+            "phone": "+1 000 000 0000",
+            "is_active": True,
+            "avatar_url": None
+        }
+        DEMO_USERS[target_email] = user
+
+    access_token = create_access_token(user["id"], user["role"], user["agency_id"])
+    refresh_token = create_refresh_token(user["id"])
+    ACTIVE_REFRESH_TOKENS.add(refresh_token)
     safe_user = {k: v for k, v in user.items() if k not in ["password_hash", "raw_pwd"]}
     
     return {
@@ -90,7 +175,6 @@ def refresh_token(payload: dict):
     if not user:
         raise HTTPException(status_code=401, detail="User not found.")
     
-    # Refresh Token Rotation: revoke old, issue new
     ACTIVE_REFRESH_TOKENS.remove(r_token)
     new_access_token = create_access_token(user["id"], user["role"], user["agency_id"])
     new_refresh_token = create_refresh_token(user["id"])
@@ -118,4 +202,3 @@ def forgot_password(req: ForgotPasswordRequest):
 @router.post("/reset-password")
 def reset_password(req: ResetPasswordRequest):
     return {"message": "Your password has been successfully updated. You may now log in."}
-

@@ -6,6 +6,8 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (data: { full_name: string; agency_name: string; email: string; phone: string; password: string }) => Promise<void>;
+  loginWithGoogle: (email?: string) => Promise<void>;
   logout: () => Promise<void>;
   switchDemoRole: (role: 'agency_admin' | 'agent') => Promise<void>;
   isAuthenticated: boolean;
@@ -51,6 +53,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const register = async (data: { full_name: string; agency_name: string; email: string; phone: string; password: string }) => {
+    setLoading(true);
+    try {
+      const res = await api.register(data);
+      setUser(res.user);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async (email?: string) => {
+    setLoading(true);
+    try {
+      const res = await api.googleAuth(email);
+      setUser(res.user);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     try {
       await api.logout();
@@ -76,6 +98,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         loading,
         login,
+        register,
+        loginWithGoogle,
         logout,
         switchDemoRole,
         isAuthenticated: !!user,
