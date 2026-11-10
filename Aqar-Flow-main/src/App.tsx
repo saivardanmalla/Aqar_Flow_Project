@@ -20,6 +20,10 @@ import { VisitsView } from './components/workspace/VisitsView';
 import { DealsView } from './components/workspace/DealsView';
 import { AgentsView } from './components/workspace/AgentsView';
 import { SettingsView } from './components/workspace/SettingsView';
+import { TenantsView } from './components/workspace/TenantsView';
+import { PaymentsView } from './components/workspace/PaymentsView';
+import { MaintenanceView } from './components/workspace/MaintenanceView';
+import { ReportsView } from './components/workspace/ReportsView';
 
 import { Property } from './types';
 
@@ -97,6 +101,9 @@ function AppContent() {
             </div>
           </div>
         )}
+        {workspaceView === 'tenants' && <TenantsView />}
+        {workspaceView === 'payments' && <PaymentsView />}
+        {workspaceView === 'maintenance' && <MaintenanceView />}
         {workspaceView === 'leads' && (
           <div className="space-y-8">
             <DealPipeline onAddDeal={() => setWorkspaceView('leads')} />
@@ -116,9 +123,7 @@ function AppContent() {
         )}
         {workspaceView === 'deals' && <DealPipeline />}
         {workspaceView === 'agents' && <AgentsView />}
-        {workspaceView === 'reports' && (
-          <DashboardView onNavigateToView={setWorkspaceView} />
-        )}
+        {workspaceView === 'reports' && <ReportsView />}
         {workspaceView === 'settings' && <SettingsView />}
       </WorkspaceLayout>
     );

@@ -16,7 +16,10 @@ import {
   Globe, 
   Shield, 
   Menu, 
-  X 
+  X,
+  CreditCard,
+  Wrench,
+  Search
 } from 'lucide-react';
 
 interface WorkspaceLayoutProps {
@@ -35,10 +38,15 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
   const { user, logout, isAdmin, switchDemoRole } = useAuth();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState('');
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'properties', label: 'Properties', icon: Building },
+    { id: 'tenants', label: 'Tenants', icon: Users },
+    { id: 'payments', label: 'Payments', icon: CreditCard },
+    { id: 'maintenance', label: 'Maintenance', icon: Wrench },
     { id: 'leads', label: 'Leads (CRM)', icon: Users },
     { id: 'visits', label: 'Visits', icon: Calendar },
     { id: 'deals', label: 'Deals', icon: Handshake },
@@ -121,7 +129,21 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
             </div>
           </div>
 
-          {/* Right Header: Role switcher, Notifications, User Badge */}
+          {/* Top Center Search Bar */}
+          <div className="hidden lg:flex items-center flex-1 max-w-md mx-6">
+            <div className="relative w-full">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search properties, tenants, payments, leads..."
+                value={globalSearch}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-hidden focus:border-[#10B981] transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Right Header: Role switcher, Notifications, User Badge & Profile Dropdown */}
           <div className="flex items-center gap-3">
             {/* Quick Role Switcher for seamless testing */}
             <div className="relative">
@@ -173,22 +195,68 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
             {/* Notification bell */}
             <div className="relative p-2 text-slate-500 hover:text-slate-800 rounded-full hover:bg-slate-100 cursor-pointer">
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#10B981] rounded-full ring-2 ring-white" />
             </div>
 
-            {/* User Profile Avatar matching image_c021d3a8.png */}
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center ring-2 ring-emerald-500/30">
-                {user?.full_name ? user.full_name.split(' ').map((n) => n[0]).join('').substring(0, 2) : 'SA'}
-              </div>
-              <div className="hidden lg:block text-left">
-                <div className="text-xs font-bold text-slate-900 leading-tight">
-                  {user?.full_name || 'Sarah Ahmed'}
+            {/* User Profile Dropdown Button */}
+            <div className="relative">
+              <button
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className="flex items-center gap-2 pl-2 border-l border-slate-200 hover:opacity-90 cursor-pointer"
+              >
+                <div className="w-8 h-8 rounded-full bg-[#101B35] text-white font-bold text-xs flex items-center justify-center ring-2 ring-emerald-500/30">
+                  {user?.full_name ? user.full_name.split(' ').map((n) => n[0]).join('').substring(0, 2) : 'SA'}
                 </div>
-                <div className="text-[10px] text-slate-500 capitalize">
-                  {user?.role.replace('_', ' ') || 'Agency Admin'}
+                <div className="hidden lg:block text-left">
+                  <div className="text-xs font-bold text-slate-900 leading-tight">
+                    {user?.full_name || 'Sarah Ahmed'}
+                  </div>
+                  <div className="text-[10px] text-slate-500 capitalize">
+                    {user?.role.replace('_', ' ') || 'Agency Admin'}
+                  </div>
                 </div>
-              </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              {profileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 text-xs">
+                  <div className="px-4 py-2 border-b border-slate-100">
+                    <div className="font-bold text-[#101B35]">{user?.full_name || 'Sarah Ahmed'}</div>
+                    <div className="text-[11px] text-slate-500 truncate">{user?.email || 'admin@aqarflow.com'}</div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      onSelectView('settings');
+                      setProfileDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium"
+                  >
+                    <Settings className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Account Settings</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      onExitToMarketplace();
+                      setProfileDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium"
+                  >
+                    <Globe className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Public Marketplace</span>
+                  </button>
+                  <div className="border-t border-slate-100 my-1" />
+                  <button
+                    onClick={() => {
+                      logout();
+                      setProfileDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2 cursor-pointer font-bold"
+                  >
+                    <LogOut className="w-3.5 h-3.5 text-red-500" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
