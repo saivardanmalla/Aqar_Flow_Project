@@ -59,6 +59,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [error, setError] = useState<string | null>(null);
   const [selectedSSOProvider, setSelectedSSOProvider] = useState<'google' | 'microsoft' | null>(null);
   const [showSSOAccountPicker, setShowSSOAccountPicker] = useState(false);
+  const [showCustomGoogleEmail, setShowCustomGoogleEmail] = useState(false);
+  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
 
   // Google Accounts matching prompt
   const googleAccounts = [
@@ -191,6 +193,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   // Google SSO trigger
   const handleGoogleClick = () => {
     setSelectedSSOProvider('google');
+    setShowCustomGoogleEmail(false);
+    setCustomGoogleEmail('');
     setShowSSOAccountPicker(true);
   };
 
@@ -757,18 +761,52 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                   </button>
                 ))}
 
-                <button
-                  type="button"
-                  onClick={() => setShowSSOAccountPicker(false)}
-                  className="w-full py-3.5 flex items-center gap-3.5 text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-full border border-slate-300 text-slate-600 flex items-center justify-center shrink-0">
-                    <User className="w-4 h-4" />
+                {/* "Use another account" button & inline input form */}
+                {!showCustomGoogleEmail ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomGoogleEmail(true)}
+                    className="w-full py-3.5 flex items-center gap-3.5 text-left hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                  >
+                    <div className="w-9 h-9 rounded-full border border-slate-300 text-slate-600 flex items-center justify-center shrink-0 group-hover:border-blue-500 group-hover:text-blue-600 transition-colors">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <div className="text-xs font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">
+                      Use another account
+                    </div>
+                  </button>
+                ) : (
+                  <div className="py-4 space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 animate-in fade-in duration-150">
+                    <div className="text-xs font-bold text-slate-900">
+                      Sign in with another Google Email
+                    </div>
+                    <input
+                      type="email"
+                      placeholder="Enter your email or phone"
+                      value={customGoogleEmail}
+                      onChange={(e) => setCustomGoogleEmail(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-hidden focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                      autoFocus
+                    />
+                    <div className="flex items-center justify-between pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomGoogleEmail(false)}
+                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!customGoogleEmail.trim()}
+                        onClick={() => handleSelectAccount(customGoogleEmail, 'agency_admin')}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+                      >
+                        Next →
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-xs font-medium text-slate-700">
-                    Use another account
-                  </div>
-                </button>
+                )}
               </div>
 
               <div className="mt-8 pt-4 border-t border-slate-100 text-[11px] text-slate-500 leading-relaxed">
