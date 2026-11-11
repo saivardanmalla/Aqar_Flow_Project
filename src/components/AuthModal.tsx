@@ -268,55 +268,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     Welcome Back
                   </h3>
                   <p className="text-xs text-[#718096] mt-1">
-                    Sign in to your AQARFLOW workspace.
+                    Sign in to your AQARFLOW account.
                   </p>
-                </div>
-
-                {/* 2 Login Server Selector */}
-                <div className="space-y-1.5">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Select Authentication Server
-                  </div>
-                  <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl gap-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLoginServerType('user');
-                        setError(null);
-                      }}
-                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                        loginServerType === 'user'
-                          ? 'bg-white text-blue-600 shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      <User className="w-3.5 h-3.5" />
-                      <span>User Login</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLoginServerType('admin');
-                        setError(null);
-                      }}
-                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                        loginServerType === 'admin'
-                          ? 'bg-slate-900 text-emerald-400 shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Admin Only Server</span>
-                    </button>
-                  </div>
-                  <div className="text-[11px] text-slate-500 pt-0.5">
-                    {loginServerType === 'user' ? (
-                      <span className="text-blue-600 font-medium">Standard Server: All users (tenants, buyers, agents) can sign in.</span>
-                    ) : (
-                      <span className="text-emerald-700 font-medium">Restricted Server: Exclusively for Agency Admins. Non-admin logins are blocked.</span>
-                    )}
-                  </div>
                 </div>
 
                 {/* Credentials Form */}
