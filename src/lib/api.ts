@@ -14,17 +14,9 @@ let authToken: string | null = null;
 
 export function setAuthToken(token: string | null) {
   authToken = token;
-  if (token) {
-    sessionStorage.setItem('aqarflow_token', token);
-  } else {
-    sessionStorage.removeItem('aqarflow_token');
-  }
 }
 
 export function getAuthToken(): string | null {
-  if (!authToken) {
-    authToken = sessionStorage.getItem('aqarflow_token');
-  }
   return authToken;
 }
 

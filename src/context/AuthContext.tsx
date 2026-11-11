@@ -22,25 +22,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    async function initAuth() {
-      const token = getAuthToken();
-      if (token) {
-        try {
-          const res = await api.getCurrentUser();
-          setUser(res.user);
-        } catch (err) {
-          console.warn('Initial session restore failed:', err);
-          setAuthToken(null);
-          setUser(null);
-        }
-      } else {
-        // Do not auto-login; user will see the login page first
-        setUser(null);
-      }
-      setLoading(false);
-    }
-
-    initAuth();
+    // When the browser/page is refreshed, automatically log out and require login
+    setAuthToken(null);
+    setUser(null);
+    setLoading(false);
   }, []);
 
   const login = async (email: string, password: string, serverType: 'user' | 'admin' = 'user') => {
