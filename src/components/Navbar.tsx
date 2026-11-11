@@ -61,58 +61,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Zone 3: Actions & Workspace Entry */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
-          {/* Quick Demo Role Selector */}
-          <div className="relative">
-            <button
-              onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200 cursor-pointer"
-              title="Switch demo role to test Admin vs Agent permissions"
-            >
-              {isAdmin ? (
-                <Shield className="w-3.5 h-3.5 text-emerald-600" />
-              ) : (
-                <UserCheck className="w-3.5 h-3.5 text-blue-600" />
-              )}
-              <span className="capitalize">{user ? user.role.replace('_', ' ') : 'Demo Account'}</span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
-            </button>
-
-            {roleDropdownOpen && (
-              <div className="absolute right-0 mt-1 w-52 bg-white rounded-lg shadow-lg border border-slate-200 py-1.5 z-50 text-xs">
-                <div className="px-3 py-1 font-semibold text-slate-400 uppercase tracking-wider text-[10px]">
-                  Role-Based Access Demo
-                </div>
-                <button
-                  onClick={() => {
-                    switchDemoRole('agency_admin');
-                    setRoleDropdownOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between text-slate-800 cursor-pointer"
-                >
-                  <span className="font-medium">Sarah Ahmed (Admin)</span>
-                  {isAdmin && <span className="text-[10px] text-emerald-600 font-bold">Active</span>}
-                </button>
-                <button
-                  onClick={() => {
-                    switchDemoRole('agent');
-                    setRoleDropdownOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between text-slate-800 cursor-pointer"
-                >
-                  <span className="font-medium">Bilal Khan (Agent)</span>
-                  {!isAdmin && user && <span className="text-[10px] text-blue-600 font-bold">Active</span>}
-                </button>
-              </div>
-            )}
-          </div>
-
           {isAuthenticated ? (
             <button
               onClick={onOpenWorkspace}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white rounded-lg transition-colors shadow-sm cursor-pointer whitespace-nowrap ${
+                isAdmin ? 'bg-slate-900 hover:bg-slate-800' : 'bg-blue-600 hover:bg-blue-700'
+              }`}
             >
-              <LayoutDashboard className="w-4 h-4 text-emerald-400" />
-              <span>Agency Workspace</span>
+              <LayoutDashboard className="w-4 h-4 text-white" />
+              <span>{isAdmin ? 'Admin Dashboard' : 'User Dashboard'}</span>
             </button>
           ) : (
             <button
@@ -165,35 +122,29 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           ))}
           <div className="pt-2 border-t border-slate-200 flex flex-col gap-2">
-            <button
-              onClick={() => {
-                onOpenWorkspace();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full text-center px-4 py-2.5 text-xs font-semibold text-white bg-slate-900 rounded-lg"
-            >
-              Launch Agency Workspace
-            </button>
-            <div className="flex gap-2 pt-1">
+            {isAuthenticated ? (
               <button
                 onClick={() => {
-                  switchDemoRole('agency_admin');
+                  onOpenWorkspace();
                   setMobileMenuOpen(false);
                 }}
-                className="flex-1 py-1.5 text-[11px] bg-slate-100 text-slate-700 rounded border border-slate-200"
+                className={`w-full text-center px-4 py-2.5 text-xs font-semibold text-white rounded-lg ${
+                  isAdmin ? 'bg-slate-900' : 'bg-blue-600'
+                }`}
               >
-                Set Admin Role
+                {isAdmin ? 'Open Admin Dashboard' : 'Open User Dashboard'}
               </button>
+            ) : (
               <button
                 onClick={() => {
-                  switchDemoRole('agent');
+                  onOpenLogin();
                   setMobileMenuOpen(false);
                 }}
-                className="flex-1 py-1.5 text-[11px] bg-slate-100 text-slate-700 rounded border border-slate-200"
+                className="w-full text-center px-4 py-2.5 text-xs font-semibold text-white bg-emerald-600 rounded-lg"
               >
-                Set Agent Role
+                Sign In
               </button>
-            </div>
+            )}
           </div>
         </div>
       )}

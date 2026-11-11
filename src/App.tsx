@@ -44,7 +44,7 @@ function AppContent() {
         <AuthModal
           isOpen={true}
           onClose={() => {}}
-          onSuccess={() => setAppMode('marketplace')}
+          onSuccess={() => setAppMode('workspace')}
         />
       </div>
     );
