@@ -176,13 +176,15 @@ export const VisitsView: React.FC = () => {
           <p className="text-xs text-slate-500">Coordinate client on-site property viewings and avoid overlapping agent bookings.</p>
         </div>
 
-        <button
-          onClick={handleOpenSchedule}
-          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Schedule Visit</span>
-        </button>
+        {isAdmin && (
+          <button
+            onClick={handleOpenSchedule}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Schedule Visit</span>
+          </button>
+        )}
       </div>
 
       {/* Visits List */}
@@ -250,27 +252,33 @@ export const VisitsView: React.FC = () => {
                     </td>
 
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {v.status === 'confirmed' && (
-                          <button
-                            onClick={() => {
-                              setActiveVisitForOutcome(v);
-                              setOutcomeNotes(v.outcome_notes || '');
-                            }}
-                            className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded text-[11px] font-semibold cursor-pointer"
-                          >
-                            Complete
-                          </button>
-                        )}
-                        {v.status !== 'cancelled' && v.status !== 'completed' && (
-                          <button
-                            onClick={() => handleStatusUpdate(v.id, 'cancelled')}
-                            className="px-2 py-1 text-slate-400 hover:text-red-600 rounded text-[11px] cursor-pointer"
-                          >
-                            Cancel
-                          </button>
-                        )}
-                      </div>
+                      {isAdmin ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          {v.status === 'confirmed' && (
+                            <button
+                              onClick={() => {
+                                setActiveVisitForOutcome(v);
+                                setOutcomeNotes(v.outcome_notes || '');
+                              }}
+                              className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded text-[11px] font-semibold cursor-pointer"
+                            >
+                              Complete
+                            </button>
+                          )}
+                          {v.status !== 'cancelled' && v.status !== 'completed' && (
+                            <button
+                              onClick={() => handleStatusUpdate(v.id, 'cancelled')}
+                              className="px-2 py-1 text-slate-400 hover:text-red-600 rounded text-[11px] cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                          View Only
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))

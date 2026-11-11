@@ -295,30 +295,41 @@ export const PropertiesView: React.FC = () => {
                     </td>
 
                     <td className="py-3 px-4">
-                      <button
-                        onClick={() => handleTogglePublish(p)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                      {isAdmin ? (
+                        <button
+                          onClick={() => handleTogglePublish(p)}
+                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                            p.is_published
+                              ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                              : 'bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200'
+                          }`}
+                          title={p.is_published ? 'Click to Unpublish' : 'Click to Publish'}
+                        >
+                          {p.is_published ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          <span>{p.is_published ? 'Published' : 'Hidden'}</span>
+                        </button>
+                      ) : (
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium border ${
                           p.is_published
-                            ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
-                            : 'bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200'
-                        }`}
-                        title={p.is_published ? 'Click to Unpublish' : 'Click to Publish'}
-                      >
-                        {p.is_published ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                        <span>{p.is_published ? 'Published' : 'Hidden'}</span>
-                      </button>
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-slate-100 text-slate-500 border-slate-200'
+                        }`}>
+                          {p.is_published ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          <span>{p.is_published ? 'Published' : 'Hidden'}</span>
+                        </span>
+                      )}
                     </td>
 
                     <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => handleOpenEdit(p)}
-                          className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-md cursor-pointer"
-                          title="Edit Property"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        {isAdmin && (
+                      {isAdmin ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenEdit(p)}
+                            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-md cursor-pointer"
+                            title="Edit Property"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={() => handleDelete(p)}
                             className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md cursor-pointer"
@@ -326,8 +337,10 @@ export const PropertiesView: React.FC = () => {
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-slate-400 italic">View Only</span>
+                      )}
                     </td>
                   </tr>
                 ))

@@ -117,13 +117,15 @@ export const DealsView: React.FC = () => {
           <p className="text-xs text-slate-500">Track offer submissions, price negotiations, token bookings, and legal transfers.</p>
         </div>
 
-        <button
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Deal Record</span>
-        </button>
+        {isAdmin && (
+          <button
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Deal Record</span>
+          </button>
+        )}
       </div>
 
       {/* Deals Table */}
@@ -173,20 +175,31 @@ export const DealsView: React.FC = () => {
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <select
-                        value={deal.stage}
-                        onChange={(e) => handleStageUpdate(deal.id, e.target.value as DealStage)}
-                        className={`py-1 px-2 rounded-md text-xs font-bold capitalize border cursor-pointer ${
-                          deal.stage === 'closed_won' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
-                          deal.stage === 'closed_lost' ? 'bg-red-100 text-red-800 border-red-300' :
-                          deal.stage === 'booking' || deal.stage === 'negotiation' ? 'bg-amber-100 text-amber-800 border-amber-300' :
-                          'bg-slate-100 text-slate-700 border-slate-300'
-                        }`}
-                      >
-                        {DEAL_STAGES.map((s) => (
-                          <option key={s.id} value={s.id}>{s.label}</option>
-                        ))}
-                      </select>
+                      {isAdmin ? (
+                        <select
+                          value={deal.stage}
+                          onChange={(e) => handleStageUpdate(deal.id, e.target.value as DealStage)}
+                          className={`py-1 px-2 rounded-md text-xs font-bold capitalize border cursor-pointer ${
+                            deal.stage === 'closed_won' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                            deal.stage === 'closed_lost' ? 'bg-red-100 text-red-800 border-red-300' :
+                            deal.stage === 'booking' || deal.stage === 'negotiation' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                            'bg-slate-100 text-slate-700 border-slate-300'
+                          }`}
+                        >
+                          {DEAL_STAGES.map((s) => (
+                            <option key={s.id} value={s.id}>{s.label}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className={`py-1 px-2.5 rounded-md text-[11px] font-bold capitalize inline-block ${
+                          deal.stage === 'closed_won' ? 'bg-emerald-100 text-emerald-800' :
+                          deal.stage === 'closed_lost' ? 'bg-red-100 text-red-800' :
+                          deal.stage === 'booking' || deal.stage === 'negotiation' ? 'bg-amber-100 text-amber-800' :
+                          'bg-slate-100 text-slate-700'
+                        }`}>
+                          {DEAL_STAGES.find((s) => s.id === deal.stage)?.label || deal.stage}
+                        </span>
+                      )}
                     </td>
 
                     <td className="py-3.5 px-4 text-slate-600 font-mono text-[11px]">

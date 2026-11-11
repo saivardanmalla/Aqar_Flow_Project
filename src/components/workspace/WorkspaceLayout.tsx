@@ -44,7 +44,7 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
     { id: 'deals', label: 'Deals', icon: Handshake },
     ...(isAdmin ? [{ id: 'agents', label: 'Agents', icon: UserCheck }] : []),
     { id: 'reports', label: 'Reports', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    ...(isAdmin ? [{ id: 'settings', label: 'Settings', icon: Settings }] : []),
   ];
 
   return (
