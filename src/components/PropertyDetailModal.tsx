@@ -12,7 +12,11 @@ import {
   ShieldCheck, 
   User, 
   Phone, 
-  Share2 
+  Share2,
+  Calculator,
+  MessageCircle,
+  Download,
+  DollarSign
 } from 'lucide-react';
 
 interface PropertyDetailModalProps {
@@ -31,6 +35,12 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [copied, setCopied] = useState(false);
 
+  // Mortgage Calculator State
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [downPaymentPercent, setDownPaymentPercent] = useState(20);
+  const [loanTenureYears, setLoanTenureYears] = useState(20);
+  const [interestRate, setInterestRate] = useState(13.5); // Average Pakistan KIBOR + spread
+
   if (!isOpen || !property) return null;
 
   const images = property.media && property.media.length > 0 
@@ -39,10 +49,29 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
   const isRent = property.purpose === 'rent';
 
+  // Calculator calculations
+  const price = property.price;
+  const downPaymentAmount = (price * downPaymentPercent) / 100;
+  const loanAmount = price - downPaymentAmount;
+  const monthlyInterestRate = interestRate / 100 / 12;
+  const totalMonths = loanTenureYears * 12;
+  const monthlyInstallment = !isRent && loanAmount > 0
+    ? (loanAmount * (monthlyInterestRate * Math.pow(1 + monthlyInterestRate, totalMonths))) / 
+      (Math.pow(1 + monthlyInterestRate, totalMonths) - 1)
+    : 0;
+
   const handleCopyLink = () => {
     navigator.clipboard?.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleWhatsAppInquiry = () => {
+    const agentPhone = property.assigned_agent?.phone?.replace(/[^0-9]/g, '') || '923008521470';
+    const message = encodeURIComponent(
+      `Hello Skyline Premier Properties! I am interested in inquiring about listing ${property.reference_code} - "${property.title}" in ${property.locality}, ${property.city}. Price: PKR ${property.price.toLocaleString()}. Please share details!`
+    );
+    window.open(`https://wa.me/${agentPhone}?text=${message}`, '_blank');
   };
 
   return (
@@ -205,35 +234,140 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             </div>
           )}
 
-          {/* Assigned Agent Contact Card */}
-          {property.assigned_agent && (
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-sm">
-                  <User className="w-5 h-5 text-emerald-400" />
+          {/* Interactive Mortgage & Installment Schedule (For Sale listings) */}
+          {!isRent && (
+            <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calculator className="w-4 h-4 text-emerald-600" />
+                  <span className="text-xs font-bold text-slate-800">Mortgage &amp; Monthly Installment Estimator</span>
                 </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-900">{property.assigned_agent.full_name}</div>
-                  <div className="text-[11px] text-slate-500">Verified AqarFlow Senior Consultant</div>
-                  <div className="text-[11px] text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
-                    <Phone className="w-3 h-3" />
-                    <span>{property.assigned_agent.phone}</span>
+                <button
+                  type="button"
+                  onClick={() => setShowCalculator(!showCalculator)}
+                  className="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 cursor-pointer"
+                >
+                  {showCalculator ? 'Hide Details' : 'Calculate Installments'}
+                </button>
+              </div>
+
+              {showCalculator && (
+                <div className="space-y-3 pt-2 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Down Payment ({downPaymentPercent}%):
+                      </label>
+                      <input
+                        type="range"
+                        min={10}
+                        max={60}
+                        step={5}
+                        value={downPaymentPercent}
+                        onChange={(e) => setDownPaymentPercent(Number(e.target.value))}
+                        className="w-full accent-emerald-600 cursor-pointer"
+                      />
+                      <div className="text-[11px] font-bold text-slate-800 mt-0.5">
+                        {formatPKR(downPaymentAmount)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Tenure: {loanTenureYears} Years
+                      </label>
+                      <input
+                        type="range"
+                        min={5}
+                        max={25}
+                        step={5}
+                        value={loanTenureYears}
+                        onChange={(e) => setLoanTenureYears(Number(e.target.value))}
+                        className="w-full accent-emerald-600 cursor-pointer"
+                      />
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        {totalMonths} monthly payments
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Financing Rate: {interestRate}%
+                      </label>
+                      <input
+                        type="range"
+                        min={8}
+                        max={20}
+                        step={0.5}
+                        value={interestRate}
+                        onChange={(e) => setInterestRate(Number(e.target.value))}
+                        className="w-full accent-emerald-600 cursor-pointer"
+                      />
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        Standard KIBOR spread
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-white rounded-xl border border-emerald-200 flex items-center justify-between">
+                    <div>
+                      <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                        Estimated Monthly Installment
+                      </div>
+                      <div className="text-base font-extrabold text-emerald-700 font-mono">
+                        {formatPKR(Math.round(monthlyInstallment))} / month
+                      </div>
+                    </div>
+                    <div className="text-[11px] text-slate-500 text-right">
+                      Principal: <strong>{formatPKR(loanAmount)}</strong>
+                    </div>
                   </div>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Assigned Agent Contact Card & Actions */}
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-sm">
+                <User className="w-5 h-5 text-emerald-400" />
               </div>
+              <div>
+                <div className="text-xs font-bold text-slate-900">
+                  {property.assigned_agent?.full_name || 'Sarah Ahmed'}
+                </div>
+                <div className="text-[11px] text-slate-500">Verified AqarFlow Senior Consultant</div>
+                <div className="text-[11px] text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
+                  <Phone className="w-3 h-3" />
+                  <span>{property.assigned_agent?.phone || '+92 300 8521470'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={handleWhatsAppInquiry}
+                className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
+                title="Send inquiry directly via WhatsApp"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-300" />
+                <span>WhatsApp</span>
+              </button>
 
               <button
                 onClick={() => {
                   onClose();
                   onInquire(property);
                 }}
-                className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
+                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
               >
-                <Calendar className="w-4 h-4" />
-                <span>Book a Guided Visit</span>
+                <Calendar className="w-4 h-4 text-emerald-400" />
+                <span>Book Guided Visit</span>
               </button>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
