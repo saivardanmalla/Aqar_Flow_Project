@@ -1965,7 +1965,11 @@ async function startServer() {
   });
 }
 
-startServer().catch((err) => {
-  console.error('Fatal server startup error:', err);
-  process.exit(1);
-});
+export { app };
+
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  startServer().catch((err) => {
+    console.error('Fatal server startup error:', err);
+    process.exit(1);
+  });
+}
