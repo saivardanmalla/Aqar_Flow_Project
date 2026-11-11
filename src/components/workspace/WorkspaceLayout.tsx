@@ -162,9 +162,22 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
                   >
                     <div>
                       <div className="font-semibold text-slate-800">Bilal Khan</div>
-                      <div className="text-[10px] text-slate-500">Agent (Assigned Leads Only)</div>
+                      <div className="text-[10px] text-slate-500">Agent (Assigned Leads)</div>
                     </div>
-                    {!isAdmin && <span className="text-[10px] text-blue-600 font-bold">Active</span>}
+                    {user?.role === 'agent' && <span className="text-[10px] text-amber-600 font-bold">Active</span>}
+                  </button>
+                  <button
+                    onClick={() => {
+                      switchDemoRole('user');
+                      setRoleMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between cursor-pointer"
+                  >
+                    <div>
+                      <div className="font-semibold text-slate-800">Sai Vardan</div>
+                      <div className="text-[10px] text-slate-500">User / Client (View-Only)</div>
+                    </div>
+                    {user?.role === 'user' && <span className="text-[10px] text-blue-600 font-bold">Active</span>}
                   </button>
                 </div>
               )}

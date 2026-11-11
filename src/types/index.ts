@@ -1,4 +1,17 @@
-export type UserRole = 'agency_admin' | 'agent';
+export type UserRole = 'agency_admin' | 'agent' | 'user';
+
+export interface AuditLog {
+  id: string;
+  agency_id: string;
+  user_id?: string;
+  user_name?: string;
+  action: string;
+  resource_type: string;
+  resource_id?: string;
+  details?: string;
+  ip_address?: string;
+  created_at: string;
+}
 
 export interface User {
   id: string;

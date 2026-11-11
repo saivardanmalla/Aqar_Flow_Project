@@ -6,9 +6,10 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string, serverType?: 'user' | 'admin') => Promise<void>;
+  loginWithGoogle: (data?: { email?: string; name?: string; avatar?: string }) => Promise<void>;
   register: (data: { full_name: string; email: string; password: string; phone?: string; agency_name?: string }) => Promise<void>;
   logout: () => Promise<void>;
-  switchDemoRole: (role: 'agency_admin' | 'agent') => Promise<void>;
+  switchDemoRole: (role: 'agency_admin' | 'agent' | 'user') => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isAgent: boolean;
@@ -52,6 +53,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithGoogle = async (data?: { email?: string; name?: string; avatar?: string }) => {
+    setLoading(true);
+    try {
+      const res = await api.loginWithGoogle(data);
+      setUser(res.user);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const register = async (data: { full_name: string; email: string; password: string; phone?: string; agency_name?: string }) => {
     setLoading(true);
     try {
@@ -70,10 +81,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const switchDemoRole = async (role: 'agency_admin' | 'agent') => {
+  const switchDemoRole = async (role: 'agency_admin' | 'agent' | 'user') => {
     setLoading(true);
     try {
-      const email = role === 'agency_admin' ? 'admin@aqarflow.com' : 'bilal@aqarflow.com';
+      const email = role === 'agency_admin' 
+        ? 'admin@aqarflow.com' 
+        : role === 'agent' 
+        ? 'bilal@aqarflow.com' 
+        : 'sai@college.edu';
       const res = await api.login(email, 'Password123!');
       setUser(res.user);
     } finally {
@@ -90,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         logout,
         switchDemoRole,
+        loginWithGoogle,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'agency_admin',
         isAgent: user?.role === 'agent',

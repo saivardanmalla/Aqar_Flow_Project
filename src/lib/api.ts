@@ -54,6 +54,15 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
 export const api = {
   // Auth
+  async loginWithGoogle(data?: { email?: string; name?: string; avatar?: string }): Promise<{ token: string; user: User; message: string }> {
+    const res = await request<{ token: string; user: User; message: string }>('/api/v1/auth/google', {
+      method: 'POST',
+      body: JSON.stringify(data || {}),
+    });
+    setAuthToken(res.token);
+    return res;
+  },
+
   async login(email: string, password: string, serverType: 'user' | 'admin' = 'user'): Promise<{ token: string; user: User; message: string }> {
     const endpoint = serverType === 'admin' ? '/api/v1/auth/admin/login' : '/api/v1/auth/login';
     const res = await request<{ token: string; user: User; message: string }>(endpoint, {
@@ -263,6 +272,22 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify(updates),
     });
+  },
+
+  async deleteUser(id: string): Promise<{ message: string }> {
+    return request<{ message: string }>(`/api/v1/users/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Audit Logs (Admin)
+  async getAuditLogs(): Promise<{ auditLogs: any[] }> {
+    return request<{ auditLogs: any[] }>('/api/v1/audit-logs');
+  },
+
+  // Activity Logs (User & Admin)
+  async getActivityLogs(): Promise<{ activities: any[] }> {
+    return request<{ activities: any[] }>('/api/v1/activity-logs');
   },
 
   // Dashboard Stats

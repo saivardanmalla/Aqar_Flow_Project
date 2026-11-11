@@ -27,7 +27,7 @@ interface UserRecord {
   full_name: string;
   email: string;
   password_hash: string;
-  role: 'agency_admin' | 'agent';
+  role: 'agency_admin' | 'agent' | 'user';
   phone: string;
   avatar_url?: string;
   is_active: boolean;
@@ -147,6 +147,81 @@ interface DealRecord {
   updated_at: string;
 }
 
+interface AuditLogRecord {
+  id: string;
+  agency_id: string;
+  user_id?: string;
+  user_name?: string;
+  action: string;
+  resource_type: string;
+  resource_id?: string;
+  details?: string;
+  ip_address?: string;
+  created_at: string;
+}
+
+const auditLogs: AuditLogRecord[] = [
+  {
+    id: 'audit-01',
+    agency_id: AGENCY_ID,
+    user_id: 'user-admin-01',
+    user_name: 'Sarah Ahmed (Agency Admin)',
+    action: 'CREATE_PROPERTY',
+    resource_type: 'property',
+    resource_id: 'prop-af-001',
+    details: 'Created Luxury 1 Kanal Contemporary Designer Villa (AF-001)',
+    ip_address: '127.0.0.1',
+    created_at: '2026-01-12T10:00:00Z',
+  },
+  {
+    id: 'audit-02',
+    agency_id: AGENCY_ID,
+    user_id: 'user-admin-01',
+    user_name: 'Sarah Ahmed (Agency Admin)',
+    action: 'ASSIGN_AGENT',
+    resource_type: 'lead',
+    resource_id: 'lead-01',
+    details: 'Assigned Lead Tariq Mehmood to Agent Bilal Khan',
+    ip_address: '127.0.0.1',
+    created_at: '2026-01-15T12:00:00Z',
+  },
+  {
+    id: 'audit-03',
+    agency_id: AGENCY_ID,
+    user_id: 'user-admin-01',
+    user_name: 'Sarah Ahmed (Agency Admin)',
+    action: 'SYSTEM_SETTINGS_UPDATE',
+    resource_type: 'settings',
+    resource_id: AGENCY_ID,
+    details: 'Updated agency commission percentages & branding policy',
+    ip_address: '127.0.0.1',
+    created_at: '2026-02-01T09:00:00Z',
+  },
+];
+
+function logAuditEvent(
+  req: Request,
+  action: string,
+  resource_type: string,
+  resource_id?: string,
+  details?: string
+) {
+  const user = (req as any).user as UserRecord | undefined;
+  const audit: AuditLogRecord = {
+    id: `audit-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    agency_id: user?.agency_id || AGENCY_ID,
+    user_id: user?.id,
+    user_name: user ? `${user.full_name} (${user.role})` : 'System / Anonymous',
+    action,
+    resource_type,
+    resource_id,
+    details,
+    ip_address: (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || '127.0.0.1',
+    created_at: new Date().toISOString(),
+  };
+  auditLogs.unshift(audit);
+}
+
 // -------------------------------------------------------------
 // INITIAL SEED DATA (Pakistan Real Estate Market)
 // -------------------------------------------------------------
@@ -191,17 +266,17 @@ const users: UserRecord[] = [
     updated_at: '2026-01-20T11:00:00Z',
   },
   {
-    id: 'user-agent-03',
+    id: 'user-regular-01',
     agency_id: AGENCY_ID,
-    full_name: 'Hamza Tariq',
-    email: 'hamza@aqarflow.com',
+    full_name: 'Sai Vardan (Client)',
+    email: 'sai@college.edu',
     password_hash: 'Password123!',
-    role: 'agent',
-    phone: '+92 345 1122334',
-    avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    role: 'user',
+    phone: '+92 300 1234567',
+    avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
     is_active: true,
-    created_at: '2026-02-01T10:15:00Z',
-    updated_at: '2026-02-01T10:15:00Z',
+    created_at: '2026-02-15T10:00:00Z',
+    updated_at: '2026-02-15T10:00:00Z',
   },
 ];
 
@@ -753,7 +828,7 @@ const agencySettings = {
 // -------------------------------------------------------------
 // AUTHENTICATION & AUTHORIZATION HELPERS
 // -------------------------------------------------------------
-const activeSessions = new Map<string, { userId: string; role: 'agency_admin' | 'agent'; agencyId: string }>();
+const activeSessions = new Map<string, { userId: string; role: 'agency_admin' | 'agent' | 'user'; agencyId: string }>();
 
 // Seed default active sessions for quick demo and testing
 activeSessions.set('session-token-admin', {
@@ -812,6 +887,95 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
 // -------------------------------------------------------------
 
 // --- AUTHENTICATION ---
+app.post('/api/v1/auth/google', (req: Request, res: Response) => {
+  const { credential, email, name, avatar } = req.body;
+  const userEmail = (email || 'google.user@aqarflow.com').toLowerCase();
+  const userName = name || 'Google User';
+
+  let user = users.find((u) => u.email.toLowerCase() === userEmail);
+  if (!user) {
+    user = {
+      id: `user-google-${Date.now()}`,
+      agency_id: AGENCY_ID,
+      full_name: userName,
+      email: userEmail,
+      password_hash: crypto.randomBytes(16).toString('hex'),
+      role: 'user',
+      phone: '+92 300 0000000',
+      avatar_url: avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    users.push(user);
+    logAuditEvent(req, 'USER_REGISTER_OAUTH', 'user', user.id, `Google OAuth account created for ${user.email}`);
+  }
+
+  const token = `aqar_${crypto.randomBytes(24).toString('hex')}`;
+  activeSessions.set(token, {
+    userId: user.id,
+    role: user.role,
+    agencyId: user.agency_id,
+  });
+
+  res.cookie('aqarflow_token', token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  logAuditEvent(req, 'USER_LOGIN_OAUTH', 'user', user.id, `Signed in via Google OAuth (${user.email})`);
+
+  const { password_hash, ...safeUser } = user;
+  return res.json({
+    token,
+    user: safeUser,
+    message: `Signed in successfully with Google! Welcome ${user.full_name}.`,
+  });
+});
+
+app.post('/api/v1/auth/admin/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+
+  const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+  if (!user || user.password_hash !== password) {
+    return res.status(401).json({ error: 'Invalid admin credentials.' });
+  }
+
+  if (user.role !== 'agency_admin') {
+    return res.status(403).json({ error: 'Access Denied: Admin Server is strictly restricted to Agency Administrators.' });
+  }
+
+  if (!user.is_active) {
+    return res.status(403).json({ error: 'Administrator account is deactivated.' });
+  }
+
+  const token = `aqar_${crypto.randomBytes(24).toString('hex')}`;
+  activeSessions.set(token, {
+    userId: user.id,
+    role: user.role,
+    agencyId: user.agency_id,
+  });
+
+  res.cookie('aqarflow_token', token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  logAuditEvent(req, 'ADMIN_LOGIN', 'user', user.id, `Admin logged into Admin Server console`);
+
+  const { password_hash, ...safeUser } = user;
+  return res.json({
+    token,
+    user: safeUser,
+    message: `Administrator session established. Welcome back, ${user.full_name}!`,
+  });
+});
+
 app.post('/api/v1/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -1651,8 +1815,30 @@ app.patch('/api/v1/users/:id', requireAdmin, (req: Request, res: Response) => {
   if (phone) users[index].phone = phone;
   users[index].updated_at = new Date().toISOString();
 
+  logAuditEvent(req, 'USER_ACCOUNT_UPDATE', 'user', users[index].id, `Updated user ${users[index].full_name} account details/status`);
+
   const { password_hash, ...safe } = users[index];
   return res.json({ message: 'User updated.', user: safe });
+});
+
+app.delete('/api/v1/users/:id', requireAdmin, (req: Request, res: Response) => {
+  const index = users.findIndex((u) => u.id === req.params.id);
+  if (index === -1) {
+    return res.status(404).json({ error: 'User not found.' });
+  }
+  const removed = users.splice(index, 1)[0];
+  logAuditEvent(req, 'USER_ACCOUNT_DELETE', 'user', removed.id, `Permanently deleted user account ${removed.email}`);
+  return res.json({ message: `User ${removed.full_name} deleted successfully.` });
+});
+
+// --- AUDIT LOGS (ADMIN ONLY) ---
+app.get('/api/v1/audit-logs', requireAdmin, (req: Request, res: Response) => {
+  return res.json({ auditLogs });
+});
+
+// --- ACTIVITY LOGS (USER & ADMIN) ---
+app.get('/api/v1/activity-logs', requireAuth, (req: Request, res: Response) => {
+  return res.json({ activities });
 });
 
 // --- DASHBOARD REPORTS & REAL STATISTICS ---
