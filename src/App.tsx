@@ -20,7 +20,7 @@ import { SettingsView } from './components/workspace/SettingsView';
 import { Property } from './types';
 
 function AppContent() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, isAdmin, loading } = useAuth();
 
   // Mode: 'marketplace' or 'workspace'
   const [appMode, setAppMode] = useState<'marketplace' | 'workspace'>('marketplace');
@@ -77,8 +77,8 @@ function AppContent() {
     }
   };
 
-  // If in Agency Workspace
-  if (appMode === 'workspace' && isAuthenticated) {
+  // If in Agency Admin Workspace
+  if (appMode === 'workspace' && isAuthenticated && isAdmin) {
     return (
       <WorkspaceLayout
         currentView={workspaceView}
@@ -99,6 +99,11 @@ function AppContent() {
         {workspaceView === 'settings' && <SettingsView />}
       </WorkspaceLayout>
     );
+  }
+
+  // If a non-admin user navigates, they remain exclusively on the public portal
+  if (appMode === 'workspace' && isAuthenticated && !isAdmin) {
+    setAppMode('marketplace');
   }
 
   // Public Marketplace Experience

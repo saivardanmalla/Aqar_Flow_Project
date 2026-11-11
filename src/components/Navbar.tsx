@@ -61,16 +61,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Zone 3: Actions & Workspace Entry */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
-          {isAuthenticated ? (
+          {isAuthenticated && isAdmin ? (
             <button
               onClick={onOpenWorkspace}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white rounded-lg transition-colors shadow-sm cursor-pointer whitespace-nowrap ${
-                isAdmin ? 'bg-slate-900 hover:bg-slate-800' : 'bg-blue-600 hover:bg-blue-700'
-              }`}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors shadow-sm cursor-pointer whitespace-nowrap"
             >
-              <LayoutDashboard className="w-4 h-4 text-white" />
-              <span>{isAdmin ? 'Admin Dashboard' : 'User Dashboard'}</span>
+              <LayoutDashboard className="w-4 h-4 text-emerald-400" />
+              <span>Admin Dashboard</span>
             </button>
+          ) : isAuthenticated ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-xs font-semibold text-slate-700">
+              <span>{user?.full_name || 'Signed In'}</span>
+            </div>
           ) : (
             <button
               onClick={onOpenLogin}
