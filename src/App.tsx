@@ -20,7 +20,7 @@ import { SettingsView } from './components/workspace/SettingsView';
 import { Property } from './types';
 
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   // Mode: 'marketplace' or 'workspace'
   const [appMode, setAppMode] = useState<'marketplace' | 'workspace'>('marketplace');
@@ -36,6 +36,19 @@ function AppContent() {
 
   // Workspace states
   const [workspaceView, setWorkspaceView] = useState<string>('dashboard');
+
+  // If user is NOT authenticated, force the Login Page as the gatekeeper
+  if (!isAuthenticated && !loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <AuthModal
+          isOpen={true}
+          onClose={() => {}}
+          onSuccess={() => setAppMode('marketplace')}
+        />
+      </div>
+    );
+  }
 
   const handleHeroSearch = (filters: any) => {
     setHeroSearchParams(filters);

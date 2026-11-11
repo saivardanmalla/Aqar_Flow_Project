@@ -32,13 +32,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(null);
         }
       } else {
-        // Auto-login default demo admin for effortless exploration, but allow logout or switching to Agent
-        try {
-          const res = await api.login('admin@aqarflow.com', 'Password123!');
-          setUser(res.user);
-        } catch {
-          // ignore if server not yet started
-        }
+        // Do not auto-login; user will see the login page first
+        setUser(null);
       }
       setLoading(false);
     }
