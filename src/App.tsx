@@ -39,10 +39,14 @@ function AppContent() {
 
   // If user is NOT authenticated, force the Login Page as the gatekeeper
   if (!isAuthenticated && !loading) {
+    const isAdminRoute = typeof window !== 'undefined' && 
+      (window.location.pathname.toLowerCase().includes('/admin') || window.location.hash.toLowerCase().includes('admin'));
+
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <AuthModal
           isOpen={true}
+          initialServerType={isAdminRoute ? 'admin' : undefined}
           onClose={() => {}}
           onSuccess={() => setAppMode('workspace')}
         />

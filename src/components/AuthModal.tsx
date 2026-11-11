@@ -25,16 +25,32 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  initialServerType?: 'user' | 'admin';
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  onSuccess, 
+  initialServerType 
+}) => {
   const { login, register, switchDemoRole, loginWithGoogle } = useAuth();
   
   // Tab Mode: 'login' | 'register' | 'forgot'
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
 
   // Server Type: 'user' (Public / All Users Server) | 'admin' (Dedicated Admin Only Server)
-  const [loginServerType, setLoginServerType] = useState<'user' | 'admin'>('user');
+  const [loginServerType, setLoginServerType] = useState<'user' | 'admin'>(() => {
+    if (initialServerType) return initialServerType;
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      if (path.includes('/admin') || hash.includes('admin')) {
+        return 'admin';
+      }
+    }
+    return 'user';
+  });
   
   // Login states
   const [email, setEmail] = useState('admin@aqarflow.com');
