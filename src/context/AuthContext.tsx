@@ -5,7 +5,8 @@ import { api, setAuthToken, getAuthToken } from '../lib/api';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, serverType?: 'user' | 'admin') => Promise<void>;
+  register: (data: { full_name: string; email: string; password: string; phone?: string; agency_name?: string }) => Promise<void>;
   logout: () => Promise<void>;
   switchDemoRole: (role: 'agency_admin' | 'agent') => Promise<void>;
   isAuthenticated: boolean;
@@ -41,10 +42,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, serverType: 'user' | 'admin' = 'user') => {
     setLoading(true);
     try {
-      const res = await api.login(email, password);
+      const res = await api.login(email, password, serverType);
+      setUser(res.user);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (data: { full_name: string; email: string; password: string; phone?: string; agency_name?: string }) => {
+    setLoading(true);
+    try {
+      const res = await api.register(data);
       setUser(res.user);
     } finally {
       setLoading(false);
@@ -76,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         loading,
         login,
+        register,
         logout,
         switchDemoRole,
         isAuthenticated: !!user,
