@@ -72,8 +72,11 @@ function AppContent() {
   const handleOpenWorkspace = () => {
     if (!isAuthenticated) {
       setIsAuthModalOpen(true);
-    } else {
+    } else if (isAdmin) {
       setAppMode('workspace');
+    } else {
+      // If user is logged in as regular user, open admin login to upgrade session
+      setIsAuthModalOpen(true);
     }
   };
 
