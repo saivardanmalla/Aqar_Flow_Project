@@ -9,6 +9,7 @@ import {
   PropertyPurpose,
   PropertyType
 } from '../types';
+import { API_BASE_URL } from "../config";
 
 let authToken: string | null = null;
 
@@ -36,7 +37,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(endpoint, {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
     credentials: 'include',
